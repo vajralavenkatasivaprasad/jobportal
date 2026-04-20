@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HireHub – Job Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --warn: #ffa502;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  h1,h2,h3,h4 { font-family:'Syne',sans-serif; }
+
+  /* NAV */
+  nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; color:var(--accent); letter-spacing:-1px; }
+  .logo span { color:var(--accent2); }
+  .nav-btns { display:flex; gap:.75rem; }
+  .btn { padding:.5rem 1.2rem; border-radius:8px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.875rem; font-weight:500; transition:all .2s; }
+  .btn-ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:#5a52e0; transform:translateY(-1px); }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { background:#e0343e; }
+  .btn-success { background:var(--success); color:#0a0a0f; }
+  .btn-success:hover { background:#28c069; }
+  .btn-warn { background:var(--warn); color:#0a0a0f; font-weight:600; }
+  .btn-sm { padding:.3rem .8rem; font-size:.8rem; }
+
+  /* PAGES */
+  .page { display:none; padding:2rem; max-width:1100px; margin:0 auto; animation:fadeIn .3s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* AUTH */
+  .auth-box { max-width:420px; margin:3rem auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2.5rem; }
+  .auth-box h2 { margin-bottom:1.5rem; font-size:1.8rem; }
+  .tab-row { display:flex; gap:0; margin-bottom:1.5rem; background:var(--surface2); border-radius:8px; padding:4px; }
+  .tab { flex:1; padding:.5rem; text-align:center; border-radius:6px; cursor:pointer; font-size:.875rem; transition:all .2s; color:var(--muted); }
+  .tab.active { background:var(--accent); color:#fff; font-weight:600; }
+
+  /* FORMS */
+  .form-group { margin-bottom:1rem; }
+  label { display:block; font-size:.8rem; color:var(--muted); margin-bottom:.4rem; text-transform:uppercase; letter-spacing:.5px; }
+  input, select, textarea { width:100%; padding:.65rem 1rem; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.9rem; transition:border .2s; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  textarea { resize:vertical; min-height:80px; }
+  select option { background:var(--surface2); }
+  .role-select { display:flex; gap:.75rem; margin-bottom:1rem; }
+  .role-btn { flex:1; padding:.6rem; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.875rem; transition:all .2s; text-align:center; }
+  .role-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(108,99,255,.1); }
+  .err { color:var(--danger); font-size:.8rem; margin-top:.3rem; }
+  .hint { color:var(--muted); font-size:.78rem; margin-top:.3rem; }
+
+  /* DASHBOARD HEADER */
+  .dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+  .dash-header h2 { font-size:1.8rem; }
+  .badge { display:inline-block; padding:.2rem .6rem; border-radius:99px; font-size:.75rem; font-weight:600; }
+  .badge-accent { background:rgba(108,99,255,.2); color:var(--accent); }
+  .badge-success { background:rgba(43,237,115,.15); color:var(--success); }
+  .badge-warn { background:rgba(255,165,2,.15); color:var(--warn); }
+  .badge-danger { background:rgba(255,71,87,.15); color:var(--danger); }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:2rem; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.2rem; }
+  .stat-card .num { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; color:var(--accent); }
+  .stat-card .lbl { color:var(--muted); font-size:.8rem; margin-top:.2rem; }
+
+  /* JOB CARDS */
+  .search-bar { display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .search-bar input { flex:1; min-width:180px; }
+  .search-bar select { width:160px; }
+  .jobs-grid { display:grid; gap:1rem; }
+  .job-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.4rem; transition:border .2s,transform .2s; }
+  .job-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .job-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+  .job-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:.3rem; }
+  .job-meta { color:var(--muted); font-size:.82rem; display:flex; gap:.75rem; flex-wrap:wrap; margin:.5rem 0; }
+  .job-meta span { display:flex; align-items:center; gap:.3rem; }
+  .job-tags { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem; }
+  .tag { padding:.2rem .6rem; background:var(--surface2); border-radius:6px; font-size:.75rem; color:var(--muted); }
+  .job-actions { display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap; }
+
+  /* APPLICANTS TABLE */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.875rem; }
+  th { text-align:left; padding:.75rem 1rem; background:var(--surface); border-bottom:1px solid var(--border); color:var(--muted); font-weight:500; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; }
+  td { padding:.75rem 1rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,.02); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2rem; max-width:540px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal h3 { font-size:1.3rem; margin-bottom:1.2rem; }
+  .modal-close { float:right; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.2rem; line-height:1; }
+
+  /* NOTIFICATION */
+  #toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:.75rem 1.2rem; font-size:.875rem; display:none; z-index:999; max-width:300px; border-left:3px solid var(--accent); }
+
+  /* MISC */
+  .section-title { font-size:1.2rem; margin-bottom:1rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+  .empty { text-align:center; padding:3rem 1rem; color:var(--muted); }
+  .chip-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .chip { padding:.25rem .7rem; border-radius:99px; border:1px solid var(--border); font-size:.8rem; cursor:pointer; transition:all .2s; color:var(--muted); }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .profile-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; margin-bottom:1.2rem; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  @media(max-width:600px) { .two-col{grid-template-columns:1fr} }
+  .notif-list .notif-item { padding:.9rem 1rem; border-bottom:1px solid var(--border); font-size:.875rem; display:flex; gap:.75rem; align-items:flex-start; }
+  .notif-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:.3rem; flex-shrink:0; }
+  .status-select { padding:.25rem .5rem; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:.8rem; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Hire<span>Hub</span></div>
+  <div id="navUser" style="color:var(--muted);font-size:.85rem;display:none"></div>
+  <div class="nav-btns" id="navBtns">
+    <button class="btn btn-ghost" onclick="showPage('login')">Login</button>
+    <button class="btn btn-primary" onclick="showPage('register')">Sign Up</button>
+  </div>
+  <div class="nav-btns" id="navLoggedIn" style="display:none">
+    <button class="btn btn-ghost btn-sm" onclick="showPage('notifications')" id="notifBtn">🔔 Alerts</button>
+    <button class="btn btn-ghost btn-sm" id="dashBtn" onclick="goDash()">Dashboard</button>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     PAGES
+============================================================ -->
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div style="text-align:center;padding:4rem 1rem 2rem">
+    <div style="font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;line-height:1.1;margin-bottom:1rem">Find Your Next<br><span style="color:var(--accent)">Dream Job</span> Today</div>
+    <p style="color:var(--muted);font-size:1.1rem;margin-bottom:2rem">Connect with top employers. Browse thousands of listings.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" style="padding:.75rem 2rem;font-size:1rem" onclick="showPage('jobs-public')">Browse Jobs</button>
+      <button class="btn btn-ghost" style="padding:.75rem 2rem;font-size:1rem" onclick="showPage('register')">Post a Job</button>
+    </div>
+  </div>
+  <div class="stats-row" style="max-width:700px;margin:2rem auto">
+    <div class="stat-card"><div class="num" id="statJobs">0</div><div class="lbl">Active Jobs</div></div>
+    <div class="stat-card"><div class="num" id="statUsers">0</div><div class="lbl">Job Seekers</div></div>
+    <div class="stat-card"><div class="num" id="statApps">0</div><div class="lbl">Applications</div></div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="page" id="page-register">
+  <div class="auth-box">
+    <h2>Create Account</h2>
+    <div class="role-select">
+      <div class="role-btn active" id="role-seeker" onclick="setRole('seeker')">👤 Job Seeker</div>
+      <div class="role-btn" id="role-employer" onclick="setRole('employer')">🏢 Employer</div>
+    </div>
+    <div class="form-group"><label>Full Name</label><input id="reg-name" placeholder="John Doe"></div>
+    <div class="form-group"><label>Email</label><input id="reg-email" type="email" placeholder="you@email.com"></div>
+    <div class="form-group"><label>Password</label><input id="reg-pass" type="password" placeholder="••••••••"></div>
+    <div id="reg-employer-fields" style="display:none">
+      <div class="form-group"><label>Company Name</label><input id="reg-company" placeholder="Acme Corp"></div>
+    </div>
+    <div id="reg-seeker-fields">
+      <div class="form-group"><label>Skills (comma separated)</label><input id="reg-skills" placeholder="React, Java, SQL"></div>
+      <div class="form-group"><label>Experience (years)</label><input id="reg-exp" type="number" min="0" placeholder="2"></div>
+    </div>
+    <div id="reg-err" class="err"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="register()">Create Account</button>
+    <p style="text-align:center;margin-top:1rem;font-size:.85rem;color:var(--muted)">Already have an account? <a href="#" style="color:var(--accent)" onclick="showPage('login')">Login</a></p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="page" id="page-login">
+  <div class="auth-box">
+    <h2>Welcome back</h2>
+    <div class="form-group"><label>Email</label><input id="login-email" type="email" placeholder="you@email.com"></div>
+    <div class="form-group"><label>Password</label><input id="login-pass" type="password" placeholder="••••••••"></div>
+    <div id="login-err" class="err"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="doLogin()">Login</button>
+    <p style="text-align:center;margin-top:1rem;font-size:.85rem;color:var(--muted)">No account? <a href="#" style="color:var(--accent)" onclick="showPage('register')">Sign up</a></p>
+    <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">Demo accounts:</p>
+      <button class="btn btn-ghost btn-sm" onclick="demoLogin('seeker')">Demo Seeker</button>
+      <button class="btn btn-ghost btn-sm" onclick="demoLogin('employer')" style="margin-left:.5rem">Demo Employer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PUBLIC JOBS BROWSE -->
+<div class="page" id="page-jobs-public">
+  <div class="dash-header">
+    <h2>Browse Jobs</h2>
+    <button class="btn btn-primary" onclick="showPage('login')">Login to Apply</button>
+  </div>
+  <div class="search-bar">
+    <input id="pub-search" placeholder="Search jobs, skills…" oninput="renderPublicJobs()">
+    <select id="pub-cat" onchange="renderPublicJobs()"><option value="">All Categories</option></select>
+    <select id="pub-loc" onchange="renderPublicJobs()"><option value="">All Locations</option></select>
+  </div>
+  <div id="pub-jobs-list" class="jobs-grid"></div>
+</div>
+
+<!-- SEEKER DASHBOARD -->
+<div class="page" id="page-seeker-dash">
+  <div class="dash-header">
+    <div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:.25rem">Job Seeker Dashboard</div>
+      <h2 id="seeker-name">Welcome</h2>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="showPage('seeker-profile')">My Profile</button>
+      <button class="btn btn-primary btn-sm" onclick="showPage('seeker-jobs')">Browse Jobs</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="sd-applied">0</div><div class="lbl">Applied</div></div>
+    <div class="stat-card"><div class="num" id="sd-shortlisted">0</div><div class="lbl">Shortlisted</div></div>
+    <div class="stat-card"><div class="num" id="sd-rejected">0</div><div class="lbl">Rejected</div></div>
+  </div>
+  <div class="section-title">My Applications</div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Job</th><th>Company</th><th>Applied</th><th>Status</th></tr></thead>
+    <tbody id="seeker-apps-table"></tbody>
+  </table></div>
+</div>
+
+<!-- SEEKER PROFILE -->
+<div class="page" id="page-seeker-profile">
+  <div class="dash-header"><h2>My Profile</h2><button class="btn btn-primary" onclick="saveProfile()">Save Changes</button></div>
+  <div class="profile-section">
+    <div class="section-title">Personal Info</div>
+    <div class="two-col">
+      <div class="form-group"><label>Full Name</label><input id="p-name"></div>
+      <div class="form-group"><label>Email</label><input id="p-email" disabled></div>
+      <div class="form-group"><label>Phone</label><input id="p-phone" placeholder="+91 9876543210"></div>
+      <div class="form-group"><label>Location</label><input id="p-location" placeholder="Chennai, India"></div>
+    </div>
+  </div>
+  <div class="profile-section">
+    <div class="section-title">Professional Info</div>
+    <div class="two-col">
+      <div class="form-group"><label>Skills (comma separated)</label><input id="p-skills" placeholder="Java, React, SQL"></div>
+      <div class="form-group"><label>Experience (years)</label><input id="p-exp" type="number" min="0"></div>
+    </div>
+    <div class="form-group"><label>Bio / Summary</label><textarea id="p-bio" placeholder="Brief about yourself…"></textarea></div>
+  </div>
+  <div class="profile-section">
+    <div class="section-title">Resume</div>
+    <div id="resume-current" style="margin-bottom:.75rem;color:var(--muted);font-size:.875rem"></div>
+    <div class="form-group"><label>Upload Resume (PDF)</label><input id="p-resume" type="file" accept=".pdf,.doc,.docx"></div>
+    <div class="hint">Supported: PDF, DOC, DOCX (stored locally in this demo)</div>
+  </div>
+</div>
+
+<!-- SEEKER JOBS BROWSE -->
+<div class="page" id="page-seeker-jobs">
+  <div class="dash-header"><h2>Find Jobs</h2></div>
+  <div class="search-bar">
+    <input id="sj-search" placeholder="Search jobs or skills…" oninput="renderSeekerJobs()">
+    <select id="sj-cat" onchange="renderSeekerJobs()"><option value="">All Categories</option></select>
+    <select id="sj-loc" onchange="renderSeekerJobs()"><option value="">All Locations</option></select>
+    <select id="sj-exp" onchange="renderSeekerJobs()">
+      <option value="">Any Experience</option>
+      <option value="0">Fresher (0 yr)</option>
+      <option value="1">1+ years</option>
+      <option value="3">3+ years</option>
+      <option value="5">5+ years</option>
+    </select>
+  </div>
+  <div id="sj-jobs-list" class="jobs-grid"></div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="page" id="page-notifications">
+  <div class="dash-header"><h2>Notifications</h2></div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- EMPLOYER DASHBOARD -->
+<div class="page" id="page-employer-dash">
+  <div class="dash-header">
+    <div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:.25rem">Employer Dashboard</div>
+      <h2 id="employer-name">Welcome</h2>
+    </div>
+    <button class="btn btn-primary" onclick="openPostJobModal()">+ Post Job</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" id="ed-jobs">0</div><div class="lbl">Active Jobs</div></div>
+    <div class="stat-card"><div class="num" id="ed-apps">0</div><div class="lbl">Total Applicants</div></div>
+    <div class="stat-card"><div class="num" id="ed-shortlisted">0</div><div class="lbl">Shortlisted</div></div>
+  </div>
+  <div class="section-title">Your Job Listings</div>
+  <div id="employer-jobs-list" class="jobs-grid"></div>
+</div>
+
+<!-- APPLICANTS VIEW -->
+<div class="page" id="page-applicants">
+  <div class="dash-header">
+    <div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:.25rem" id="applicants-job-title"></div>
+      <h2>Applicants</h2>
+    </div>
+    <button class="btn btn-ghost" onclick="showPage('employer-dash')">← Back</button>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Skills</th><th>Experience</th><th>Resume</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="applicants-table"></tbody>
+  </table></div>
+</div>
+
+<!-- ============================================================ MODALS -->
+<!-- Post / Edit Job Modal -->
+<div class="modal-overlay" id="modal-job">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-job')">✕</button>
+    <h3 id="modal-job-title">Post a Job</h3>
+    <div class="two-col">
+      <div class="form-group"><label>Job Title</label><input id="mj-title" placeholder="Software Engineer"></div>
+      <div class="form-group"><label>Category</label>
+        <select id="mj-cat">
+          <option>Technology</option><option>Marketing</option><option>Finance</option>
+          <option>Design</option><option>Sales</option><option>Operations</option><option>HR</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Location</label><input id="mj-loc" placeholder="Chennai / Remote"></div>
+      <div class="form-group"><label>Salary (₹/year)</label><input id="mj-salary" placeholder="600000"></div>
+      <div class="form-group"><label>Min. Experience (years)</label><input id="mj-exp" type="number" min="0" value="0"></div>
+      <div class="form-group"><label>Vacancies</label><input id="mj-vac" type="number" min="1" value="1"></div>
+    </div>
+    <div class="form-group"><label>Skills Required (comma separated)</label><input id="mj-skills" placeholder="Java, Spring Boot, MySQL"></div>
+    <div class="form-group"><label>Job Description</label><textarea id="mj-desc" rows="4" placeholder="Describe the role, responsibilities…"></textarea></div>
+    <input type="hidden" id="mj-edit-id">
+    <div id="mj-err" class="err"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="saveJob()">Save Job</button>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal-overlay" id="modal-apply">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-apply')">✕</button>
+    <h3>Apply for Job</h3>
+    <div id="apply-job-info" style="margin-bottom:1rem;padding:1rem;background:var(--surface2);border-radius:10px;font-size:.875rem"></div>
+    <div class="form-group"><label>Cover Letter (optional)</label><textarea id="apply-cover" rows="4" placeholder="Tell the employer why you're a great fit…"></textarea></div>
+    <div class="form-group"><label>Resume on file</label><div id="apply-resume-info" style="color:var(--muted);font-size:.875rem;padding:.5rem"></div></div>
+    <button class="btn btn-primary" style="width:100%" onclick="submitApplication()">Submit Application</button>
+    <input type="hidden" id="apply-job-id">
+  </div>
+</div>
+
+<script>
+// ====================================================
+// DATA STORE (localStorage)
+// ====================================================
+const S = {
+  get users()   { return JSON.parse(localStorage.getItem('hh_users')||'[]') },
+  set users(v)  { localStorage.setItem('hh_users', JSON.stringify(v)) },
+  get jobs()    { return JSON.parse(localStorage.getItem('hh_jobs')||'[]') },
+  set jobs(v)   { localStorage.setItem('hh_jobs', JSON.stringify(v)) },
+  get apps()    { return JSON.parse(localStorage.getItem('hh_apps')||'[]') },
+  set apps(v)   { localStorage.setItem('hh_apps', JSON.stringify(v)) },
+  get notifs()  { return JSON.parse(localStorage.getItem('hh_notifs')||'[]') },
+  set notifs(v) { localStorage.setItem('hh_notifs', JSON.stringify(v)) },
+  get session() { return JSON.parse(sessionStorage.getItem('hh_session')||'null') },
+  set session(v){ sessionStorage.setItem('hh_session', JSON.stringify(v)) }
+};
+
+let currentUser = S.session;
+
+// ====================================================
+// SEED DEMO DATA
+// ====================================================
+function seedData() {
+  if(S.users.length) return;
+  const users = [
+    { id:'u1', name:'Alice Seeker', email:'seeker@demo.com', pass:'demo123', role:'seeker', skills:'React,Node.js,SQL', exp:2, phone:'9876543210', location:'Chennai', bio:'Passionate developer', resume:'' },
+    { id:'u2', name:'TechCorp HR', email:'employer@demo.com', pass:'demo123', role:'employer', company:'TechCorp Solutions', phone:'9988776655', location:'Bangalore' }
+  ];
+  const jobs = [
+    { id:'j1', employerId:'u2', company:'TechCorp Solutions', title:'Frontend Developer', cat:'Technology', location:'Chennai', salary:'700000', exp:1, vac:2, skills:'React,JavaScript,CSS', desc:'Build modern web interfaces using React.js. Work with cross-functional teams.', date: dStr(-2), active:true },
+    { id:'j2', employerId:'u2', company:'TechCorp Solutions', title:'Java Backend Engineer', cat:'Technology', location:'Remote', salary:'900000', exp:2, vac:1, skills:'Java,Spring Boot,MySQL', desc:'Design and develop REST APIs using Spring Boot. Microservices experience preferred.', date: dStr(-5), active:true },
+    { id:'j3', employerId:'u2', company:'TechCorp Solutions', title:'UX Designer', cat:'Design', location:'Bangalore', salary:'600000', exp:0, vac:3, skills:'Figma,Adobe XD,Prototyping', desc:'Create user-centric designs for web and mobile apps.', date: dStr(-1), active:true }
+  ];
+  S.users = users; S.jobs = jobs;
+}
+function dStr(offset=0) {
+  const d = new Date(); d.setDate(d.getDate()+offset);
+  return d.toISOString().split('T')[0];
+}
+function uid() { return 'id_'+Math.random().toString(36).substr(2,9); }
+
+// ====================================================
+// NAVIGATION
+// ====================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='seeker-jobs') { populateFilters('sj-cat','sj-loc'); renderSeekerJobs(); }
+  if(id==='jobs-public') { populateFilters('pub-cat','pub-loc'); renderPublicJobs(); }
+  if(id==='seeker-dash') renderSeekerDash();
+  if(id==='employer-dash') renderEmployerDash();
+  if(id==='seeker-profile') loadProfile();
+  if(id==='notifications') renderNotifications();
+  if(id==='home') updateHomeStats();
+}
+function goDash() {
+  if(!currentUser) return showPage('login');
+  showPage(currentUser.role==='employer' ? 'employer-dash' : 'seeker-dash');
+}
+
+// ====================================================
+// AUTH
+// ====================================================
+let regRole = 'seeker';
+function setRole(r) {
+  regRole = r;
+  document.getElementById('role-seeker').classList.toggle('active', r==='seeker');
+  document.getElementById('role-employer').classList.toggle('active', r==='employer');
+  document.getElementById('reg-seeker-fields').style.display = r==='seeker'?'block':'none';
+  document.getElementById('reg-employer-fields').style.display = r==='employer'?'block':'none';
+}
+function register() {
+  const name=v('reg-name'), email=v('reg-email'), pass=v('reg-pass');
+  const err = document.getElementById('reg-err');
+  if(!name||!email||!pass) { err.textContent='All fields required'; return; }
+  if(S.users.find(u=>u.email===email)) { err.textContent='Email already registered'; return; }
+  err.textContent='';
+  const user = { id:uid(), name, email, pass, role:regRole };
+  if(regRole==='employer') { user.company = v('reg-company')||name+' Corp'; }
+  else { user.skills=v('reg-skills')||''; user.exp=parseInt(v('reg-exp'))||0; user.resume=''; user.phone=''; user.location=''; user.bio=''; }
+  const users = S.users; users.push(user); S.users = users;
+  loginUser(user); toast('Account created! Welcome '+user.name);
+}
+function doLogin() {
+  const email=v('login-email'), pass=v('login-pass');
+  const user = S.users.find(u=>u.email===email&&u.pass===pass);
+  if(!user) { document.getElementById('login-err').textContent='Invalid credentials'; return; }
+  loginUser(user);
+}
+function demoLogin(role) {
+  const email = role==='seeker'?'seeker@demo.com':'employer@demo.com';
+  const user = S.users.find(u=>u.email===email);
+  if(user) loginUser(user);
+}
+function loginUser(user) {
+  currentUser = user; S.session = user;
+  document.getElementById('navBtns').style.display='none';
+  document.getElementById('navLoggedIn').style.display='flex';
+  document.getElementById('navUser').style.display='block';
+  document.getElementById('navUser').textContent = user.name + (user.role==='employer'?' (Employer)':' (Seeker)');
+  goDash();
+}
+function logout() {
+  currentUser=null; S.session=null;
+  sessionStorage.removeItem('hh_session');
+  document.getElementById('navBtns').style.display='flex';
+  document.getElementById('navLoggedIn').style.display='none';
+  document.getElementById('navUser').style.display='none';
+  showPage('home');
+}
+
+// ====================================================
+// SEEKER DASHBOARD
+// ====================================================
+function renderSeekerDash() {
+  if(!currentUser) return;
+  document.getElementById('seeker-name').textContent = 'Hello, '+currentUser.name.split(' ')[0]+'!';
+  const myApps = S.apps.filter(a=>a.userId===currentUser.id);
+  document.getElementById('sd-applied').textContent = myApps.length;
+  document.getElementById('sd-shortlisted').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+  document.getElementById('sd-rejected').textContent = myApps.filter(a=>a.status==='Rejected').length;
+  const tbody = document.getElementById('seeker-apps-table');
+  if(!myApps.length) { tbody.innerHTML='<tr><td colspan="4" class="empty">No applications yet.</td></tr>'; return; }
+  tbody.innerHTML = myApps.map(a=>{
+    const job = S.jobs.find(j=>j.id===a.jobId)||{title:'Deleted Job',company:'-'};
+    return `<tr>
+      <td><strong>${job.title}</strong></td>
+      <td>${job.company}</td>
+      <td>${a.date}</td>
+      <td><span class="badge ${statusBadge(a.status)}">${a.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+function statusBadge(s) {
+  if(s==='Shortlisted') return 'badge-success';
+  if(s==='Rejected') return 'badge-danger';
+  if(s==='Pending') return 'badge-warn';
+  return 'badge-accent';
+}
+
+// ====================================================
+// PROFILE
+// ====================================================
+function loadProfile() {
+  if(!currentUser) return;
+  const u = S.users.find(x=>x.id===currentUser.id);
+  sv('p-name',u.name); sv('p-email',u.email); sv('p-phone',u.phone||'');
+  sv('p-location',u.location||''); sv('p-skills',u.skills||''); sv('p-exp',u.exp||0); sv('p-bio',u.bio||'');
+  document.getElementById('resume-current').textContent = u.resume ? '📎 '+u.resume : 'No resume uploaded yet.';
+}
+function saveProfile() {
+  const users = S.users;
+  const idx = users.findIndex(u=>u.id===currentUser.id);
+  const file = document.getElementById('p-resume').files[0];
+  users[idx].name = v('p-name')||users[idx].name;
+  users[idx].phone = v('p-phone');
+  users[idx].location = v('p-location');
+  users[idx].skills = v('p-skills');
+  users[idx].exp = parseInt(v('p-exp'))||0;
+  users[idx].bio = v('p-bio');
+  if(file) users[idx].resume = file.name;
+  S.users = users; currentUser = users[idx]; S.session = currentUser;
+  document.getElementById('navUser').textContent = currentUser.name+' (Seeker)';
+  toast('Profile saved!'); showPage('seeker-dash');
+}
+
+// ====================================================
+// JOBS BROWSE (Seeker)
+// ====================================================
+function populateFilters(catId, locId) {
+  const jobs = S.jobs.filter(j=>j.active);
+  const cats = [...new Set(jobs.map(j=>j.cat))];
+  const locs = [...new Set(jobs.map(j=>j.location))];
+  const ce = document.getElementById(catId);
+  const le = document.getElementById(locId);
+  ce.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+  le.innerHTML = '<option value="">All Locations</option>' + locs.map(l=>`<option>${l}</option>`).join('');
+}
+function renderSeekerJobs() {
+  const q=v('sj-search').toLowerCase(), cat=v('sj-cat'), loc=v('sj-loc'), expF=v('sj-exp');
+  const myApps = S.apps.filter(a=>a.userId===currentUser?.id).map(a=>a.jobId);
+  let jobs = S.jobs.filter(j=>j.active);
+  if(q) jobs=jobs.filter(j=>(j.title+j.skills+j.desc).toLowerCase().includes(q));
+  if(cat) jobs=jobs.filter(j=>j.cat===cat);
+  if(loc) jobs=jobs.filter(j=>j.location===loc);
+  if(expF!=='') jobs=jobs.filter(j=>j.exp<=parseInt(expF));
+  const el=document.getElementById('sj-jobs-list');
+  if(!jobs.length){el.innerHTML='<div class="empty">No jobs found.</div>';return;}
+  el.innerHTML=jobs.map(j=>{
+    const applied=myApps.includes(j.id);
+    return `<div class="job-card">
+      <div class="job-card-top">
+        <div>
+          <div class="job-title">${j.title}</div>
+          <div style="color:var(--muted);font-size:.85rem">${j.company}</div>
+        </div>
+        <span class="badge badge-accent">${j.cat}</span>
+      </div>
+      <div class="job-meta">
+        <span>📍 ${j.location}</span>
+        <span>💰 ₹${fmt(j.salary)}</span>
+        <span>🕐 ${j.exp}+ yrs</span>
+        <span>👥 ${j.vac} vacancies</span>
+      </div>
+      <div class="job-tags">${j.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-top:.6rem">${j.desc.substr(0,120)}…</p>
+      <div class="job-actions">
+        ${applied
+          ? `<button class="btn btn-ghost btn-sm" disabled>✓ Applied</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="openApplyModal('${j.id}')">Apply Now</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderPublicJobs() {
+  const q=v('pub-search').toLowerCase(), cat=v('pub-cat'), loc=v('pub-loc');
+  let jobs=S.jobs.filter(j=>j.active);
+  if(q) jobs=jobs.filter(j=>(j.title+j.skills+j.desc).toLowerCase().includes(q));
+  if(cat) jobs=jobs.filter(j=>j.cat===cat);
+  if(loc) jobs=jobs.filter(j=>j.location===loc);
+  const el=document.getElementById('pub-jobs-list');
+  if(!jobs.length){el.innerHTML='<div class="empty">No jobs found.</div>';return;}
+  el.innerHTML=jobs.map(j=>`<div class="job-card">
+    <div class="job-card-top">
+      <div><div class="job-title">${j.title}</div><div style="color:var(--muted);font-size:.85rem">${j.company}</div></div>
+      <span class="badge badge-accent">${j.cat}</span>
+    </div>
+    <div class="job-meta"><span>📍 ${j.location}</span><span>💰 ₹${fmt(j.salary)}</span><span>🕐 ${j.exp}+ yrs</span></div>
+    <div class="job-tags">${j.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-top:.6rem">${j.desc.substr(0,100)}…</p>
+    <div class="job-actions"><button class="btn btn-primary btn-sm" onclick="showPage('login')">Login to Apply</button></div>
+  </div>`).join('');
+}
+
+// ====================================================
+// APPLY
+// ====================================================
+function openApplyModal(jobId) {
+  if(!currentUser) { showPage('login'); return; }
+  const job = S.jobs.find(j=>j.id===jobId);
+  document.getElementById('apply-job-id').value = jobId;
+  document.getElementById('apply-job-info').innerHTML=`<strong>${job.title}</strong><br><span style="color:var(--muted)">${job.company} · ${job.location}</span>`;
+  const u = S.users.find(x=>x.id===currentUser.id);
+  document.getElementById('apply-resume-info').textContent = u?.resume || 'No resume on file (update profile to add one)';
+  document.getElementById('apply-cover').value='';
+  openModal('modal-apply');
+}
+function submitApplication() {
+  const jobId=document.getElementById('apply-job-id').value;
+  const cover=v('apply-cover');
+  const already=S.apps.find(a=>a.userId===currentUser.id&&a.jobId===jobId);
+  if(already){toast('Already applied!');closeModal('modal-apply');return;}
+  const apps=S.apps;
+  apps.push({id:uid(),userId:currentUser.id,jobId,cover,date:dStr(),status:'Pending'});
+  S.apps=apps;
+  // notif
+  const notifs=S.notifs;
+  const job=S.jobs.find(j=>j.id===jobId);
+  notifs.push({id:uid(),userId:currentUser.id,text:`Your application for <strong>${job.title}</strong> at ${job.company} was submitted.`,date:dStr(),type:'info'});
+  S.notifs=notifs;
+  closeModal('modal-apply'); toast('Application submitted!');
+  renderSeekerJobs();
+}
+
+// ====================================================
+// EMPLOYER DASHBOARD
+// ====================================================
+function renderEmployerDash() {
+  if(!currentUser) return;
+  document.getElementById('employer-name').textContent = currentUser.company||currentUser.name;
+  const myJobs=S.jobs.filter(j=>j.employerId===currentUser.id&&j.active);
+  const myJobIds=myJobs.map(j=>j.id);
+  const myApps=S.apps.filter(a=>myJobIds.includes(a.jobId));
+  document.getElementById('ed-jobs').textContent=myJobs.length;
+  document.getElementById('ed-apps').textContent=myApps.length;
+  document.getElementById('ed-shortlisted').textContent=myApps.filter(a=>a.status==='Shortlisted').length;
+  const el=document.getElementById('employer-jobs-list');
+  if(!myJobs.length){el.innerHTML='<div class="empty">No jobs posted yet.</div>';return;}
+  el.innerHTML=myJobs.map(j=>{
+    const cnt=S.apps.filter(a=>a.jobId===j.id).length;
+    return `<div class="job-card">
+      <div class="job-card-top">
+        <div><div class="job-title">${j.title}</div><div style="color:var(--muted);font-size:.85rem">${j.location} · ${j.cat}</div></div>
+        <span class="badge badge-success">Active</span>
+      </div>
+      <div class="job-meta"><span>💰 ₹${fmt(j.salary)}</span><span>🕐 ${j.exp}+ yrs</span><span>👥 ${j.vac} vacancies</span><span>📅 ${j.date}</span></div>
+      <div class="job-tags">${j.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>
+      <div class="job-actions">
+        <button class="btn btn-primary btn-sm" onclick="viewApplicants('${j.id}')">👁 Applicants (${cnt})</button>
+        <button class="btn btn-ghost btn-sm" onclick="editJob('${j.id}')">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteJob('${j.id}')">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ====================================================
+// POST / EDIT JOB
+// ====================================================
+function openPostJobModal() {
+  document.getElementById('modal-job-title').textContent='Post a Job';
+  document.getElementById('mj-edit-id').value='';
+  ['mj-title','mj-loc','mj-salary','mj-skills','mj-desc'].forEach(id=>sv(id,''));
+  sv('mj-exp','0'); sv('mj-vac','1'); sv('mj-cat','Technology');
+  openModal('modal-job');
+}
+function editJob(jid) {
+  const job=S.jobs.find(j=>j.id===jid);
+  document.getElementById('modal-job-title').textContent='Edit Job';
+  document.getElementById('mj-edit-id').value=jid;
+  sv('mj-title',job.title); sv('mj-cat',job.cat); sv('mj-loc',job.location);
+  sv('mj-salary',job.salary); sv('mj-exp',job.exp); sv('mj-vac',job.vac);
+  sv('mj-skills',job.skills); sv('mj-desc',job.desc);
+  openModal('modal-job');
+}
+function saveJob() {
+  const title=v('mj-title'),loc=v('mj-loc'),salary=v('mj-salary'),skills=v('mj-skills'),desc=v('mj-desc');
+  const err=document.getElementById('mj-err');
+  if(!title||!loc||!salary||!skills||!desc){err.textContent='All fields required';return;}
+  err.textContent='';
+  const editId=document.getElementById('mj-edit-id').value;
+  const jobs=S.jobs;
+  if(editId) {
+    const idx=jobs.findIndex(j=>j.id===editId);
+    jobs[idx]={...jobs[idx],title,cat:v('mj-cat'),location:loc,salary,exp:parseInt(v('mj-exp'))||0,vac:parseInt(v('mj-vac'))||1,skills,desc};
+    toast('Job updated!');
+  } else {
+    jobs.push({id:uid(),employerId:currentUser.id,company:currentUser.company||currentUser.name,title,cat:v('mj-cat'),location:loc,salary,exp:parseInt(v('mj-exp'))||0,vac:parseInt(v('mj-vac'))||1,skills,desc,date:dStr(),active:true});
+    toast('Job posted!');
+  }
+  S.jobs=jobs; closeModal('modal-job'); renderEmployerDash();
+}
+function deleteJob(jid) {
+  if(!confirm('Delete this job?')) return;
+  const jobs=S.jobs; const idx=jobs.findIndex(j=>j.id===jid);
+  jobs[idx].active=false; S.jobs=jobs; toast('Job removed.'); renderEmployerDash();
+}
+
+// ====================================================
+// APPLICANTS
+// ====================================================
+let currentJobId='';
+function viewApplicants(jid) {
+  currentJobId=jid;
+  const job=S.jobs.find(j=>j.id===jid);
+  document.getElementById('applicants-job-title').textContent='Job: '+job.title;
+  renderApplicantsTable();
+  showPage('applicants');
+}
+function renderApplicantsTable() {
+  const apps=S.apps.filter(a=>a.jobId===currentJobId);
+  const tbody=document.getElementById('applicants-table');
+  if(!apps.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No applicants yet.</td></tr>';return;}
+  tbody.innerHTML=apps.map(a=>{
+    const user=S.users.find(u=>u.id===a.userId)||{name:'Unknown',skills:'',exp:0,resume:''};
+    return `<tr>
+      <td><strong>${user.name}</strong><br><span style="font-size:.78rem;color:var(--muted)">${user.email||''}</span></td>
+      <td>${(user.skills||'').split(',').slice(0,3).map(s=>`<span class="tag">${s.trim()}</span>`).join(' ')}</td>
+      <td>${user.exp||0} yrs</td>
+      <td>${user.resume?`<span style="color:var(--accent);font-size:.8rem">📎 ${user.resume}</span>`:'<span style="color:var(--muted);font-size:.8rem">None</span>'}</td>
+      <td style="font-size:.8rem">${a.date}</td>
+      <td><span class="badge ${statusBadge(a.status)}">${a.status}</span></td>
+      <td>
+        <select class="status-select" onchange="updateStatus('${a.id}',this.value)">
+          <option ${a.status==='Pending'?'selected':''}>Pending</option>
+          <option ${a.status==='Shortlisted'?'selected':''}>Shortlisted</option>
+          <option ${a.status==='Rejected'?'selected':''}>Rejected</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function updateStatus(appId, status) {
+  const apps=S.apps; const idx=apps.findIndex(a=>a.id===appId);
+  const oldStatus=apps[idx].status;
+  apps[idx].status=status; S.apps=apps;
+  // notify seeker
+  if(status!==oldStatus) {
+    const job=S.jobs.find(j=>j.id===apps[idx].jobId)||{title:'Job'};
+    const notifs=S.notifs;
+    notifs.push({id:uid(),userId:apps[idx].userId,text:`Your application for <strong>${job.title}</strong> was updated to <strong>${status}</strong>.`,date:dStr(),type:status==='Shortlisted'?'success':status==='Rejected'?'danger':'info'});
+    S.notifs=notifs;
+  }
+  renderApplicantsTable();
+  toast(`Status updated to ${status}`);
+}
+
+// ====================================================
+// NOTIFICATIONS
+// ====================================================
+function renderNotifications() {
+  if(!currentUser) return;
+  const myNotifs=S.notifs.filter(n=>n.userId===currentUser.id).reverse();
+  const el=document.getElementById('notif-list');
+  if(!myNotifs.length){el.innerHTML='<div class="empty">No notifications yet.</div>';return;}
+  el.innerHTML=myNotifs.map(n=>`<div class="notif-item">
+    <div class="notif-dot" style="background:${n.type==='success'?'var(--success)':n.type==='danger'?'var(--danger)':'var(--accent)'}"></div>
+    <div><span>${n.text}</span><div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">${n.date}</div></div>
+  </div>`).join('');
+}
+
+// ====================================================
+// HOME STATS
+// ====================================================
+function updateHomeStats() {
+  document.getElementById('statJobs').textContent = S.jobs.filter(j=>j.active).length;
+  document.getElementById('statUsers').textContent = S.users.filter(u=>u.role==='seeker').length;
+  document.getElementById('statApps').textContent = S.apps.length;
+}
+
+// ====================================================
+// UTILS
+// ====================================================
+function v(id){ return document.getElementById(id)?.value?.trim()||''; }
+function sv(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
+function fmt(n){ return Number(n).toLocaleString('en-IN'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function toast(msg) {
+  const t=document.getElementById('toast'); t.innerHTML=msg; t.style.display='block';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none', 3000);
+}
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// ====================================================
+// INIT
+// ====================================================
+seedData();
+if(currentUser) {
+  loginUser(currentUser);
+} else {
+  showPage('home');
+  updateHomeStats();
+}
+</script>
+</body>
+</html>
